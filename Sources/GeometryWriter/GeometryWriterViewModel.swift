@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  GeometryWriterViewModel.swift
 //  
 //
 //  Created by Anton Heestand on 2022-03-15.
@@ -14,7 +14,7 @@ import MultiViews
 import UIKit
 #endif
 
-class GeometryWriterViewModel<Content: View>: ObservableObject {
+final class GeometryWriterViewModel<Content: View>: ObservableObject {
         
     private let viewPix: ViewPIX
     private let xReducePix: ReducePIX
@@ -22,9 +22,6 @@ class GeometryWriterViewModel<Content: View>: ObservableObject {
     
     private let hostingController: MPHostingController<Content>
     private var view: MPView { hostingController.view }
-    
-    #warning("Debug")
-    @Published var image: MPImage?
     
     let maximumSize = CGSize(width: 500, height: 500)
     
@@ -91,14 +88,18 @@ class GeometryWriterViewModel<Content: View>: ObservableObject {
             self?.viewPix.viewNeedsRender()
         }
         
-        viewPix.delegate = self
         yReducePix.delegate = self
         xReducePix.delegate = self
     }
     
-//    func update(content: @escaping () -> Content) {
-//        hostingController.rootView = content()
-//    }
+    func update(content: @escaping () -> Content) {
+        
+        hostingController.rootView = content()
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) { [weak self] in
+            self?.viewPix.viewNeedsRender()
+        }
+    }
     
 }
 
@@ -108,83 +109,72 @@ extension GeometryWriterViewModel: NODEDelegate {
         
         guard let pix = node as? PIX else { return }
         
-        if pix == viewPix {
+        guard pix == xReducePix || pix == yReducePix else { return }
             
-            image = pix.renderedImage
+        guard let pixels = pix.renderedPixels else { return }
+        
+        let values = pixels.raw.flatMap({ $0 }).map(\.color.alpha)
+        
+        if pix == xReducePix {
             
-        } else if pix == xReducePix || pix == yReducePix {
-            
-            guard let pixels = pix.renderedPixels else { return }
-            
-            let values = pixels.raw.flatMap({ $0 }).map(\.color.alpha)
-            print("values.count:", values.count)
-            
-            if pix == xReducePix {
-                
-                print("---------> X")
-            
-                var leadingIndex: Int!
-                for (index, value) in values.enumerated() {
-                    if value > 0.01 {
-                        leadingIndex = index
-                        break
-                    }
+            var leadingIndex: Int!
+            for (index, value) in values.enumerated() {
+                if value > 0.01 {
+                    leadingIndex = index
+                    break
                 }
-                
-                var trailingIndex: Int!
-                for (index, value) in values.enumerated().reversed() {
-                    if value > 0.01 {
-                        trailingIndex = index
-                        break
-                    }
-                }
-                
-                guard leadingIndex != nil && trailingIndex != nil else { return }
-                
-                leadingFraction = CGFloat(leadingIndex) / CGFloat(values.count - 1)
-                trailingFraction = CGFloat(trailingIndex) / CGFloat(values.count - 1)
-                
-            } else if pix == yReducePix {
-                
-                print("---------> Y")
-                
-                var topIndex: Int!
-                for (index, value) in values.enumerated() {
-                    if value > 0.01 {
-                        topIndex = index
-                        break
-                    }
-                }
-                
-                var bottomIndex: Int!
-                for (index, value) in values.enumerated().reversed() {
-                    if value > 0.01 {
-                        bottomIndex = index
-                        break
-                    }
-                }
-                
-                guard topIndex != nil && bottomIndex != nil else { return }
-                
-                topFraction = CGFloat(topIndex) / CGFloat(values.count - 1)
-                bottomFraction = CGFloat(bottomIndex) / CGFloat(values.count - 1)
             }
             
-            calculateFractionFrame()
+            var trailingIndex: Int!
+            for (index, value) in values.enumerated().reversed() {
+                if value > 0.01 {
+                    trailingIndex = index
+                    break
+                }
+            }
+            
+            guard leadingIndex != nil && trailingIndex != nil else { return }
+            
+            leadingFraction = CGFloat(leadingIndex) / CGFloat(values.count - 1)
+            trailingFraction = CGFloat(trailingIndex) / CGFloat(values.count - 1)
+            
+        } else if pix == yReducePix {
+            
+            var topIndex: Int!
+            for (index, value) in values.enumerated() {
+                if value > 0.01 {
+                    topIndex = index
+                    break
+                }
+            }
+            
+            var bottomIndex: Int!
+            for (index, value) in values.enumerated().reversed() {
+                if value > 0.01 {
+                    bottomIndex = index
+                    break
+                }
+            }
+            
+            guard topIndex != nil && bottomIndex != nil else { return }
+            
+            topFraction = CGFloat(topIndex) / CGFloat(values.count - 1)
+            bottomFraction = CGFloat(bottomIndex) / CGFloat(values.count - 1)
         }
+        
+        calculateFractionFrame()
     }
     
     func calculateFractionFrame() {
+        
         guard let topFraction: CGFloat = topFraction else { return }
         guard let leadingFraction: CGFloat = leadingFraction else { return }
         guard let trailingFraction: CGFloat = trailingFraction else { return }
         guard let bottomFraction: CGFloat = bottomFraction else { return }
-        print("topFraction:", topFraction)
-        print("leadingFraction:", leadingFraction)
-        print("trailingFraction:", trailingFraction)
-        print("bottomFraction:", bottomFraction)
+        
         let width: CGFloat = trailingFraction - leadingFraction
         let height: CGFloat = bottomFraction - topFraction
+        
         fractionFrame = CGRect(x: leadingFraction, y: topFraction, width: width, height: height)
     }
 }
