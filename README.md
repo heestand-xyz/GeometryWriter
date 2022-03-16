@@ -22,7 +22,7 @@ struct ContentView: View {
     
     var body: some View {
         
-        GeometryWriter {
+        GeometryWriter { _ in
             
             Toggle(isOn: $active) {
                 EmptyView()
