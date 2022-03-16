@@ -26,7 +26,6 @@ public struct GeometryWriter<Content: View>: View {
                        height: viewModel.maximumSize.height)
                 .frame(width: frame.width, height: frame.height, alignment: .topLeading)
                 .offset(x: -frame.origin.x, y: -frame.origin.y)
-//            }
         }
     }
 }

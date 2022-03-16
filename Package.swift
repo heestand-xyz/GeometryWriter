@@ -1,4 +1,4 @@
-// swift-tools-version: 5.6
+// swift-tools-version: 5.4
 
 import PackageDescription
 
@@ -6,8 +6,6 @@ let package = Package(
     name: "GeometryWriter",
     platforms: [
         .iOS(.v14),
-        .tvOS(.v14),
-        .macOS(.v11),
     ],
     products: [
         .library(
@@ -16,7 +14,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/heestand-xyz/PixelKit", .exactItem("3.0.0")),
-        .package(url: "https://github.com/heestand-xyz/MultiViews", .exactItem("1.5.5"))
+        .package(url: "https://github.com/heestand-xyz/MultiViews", .exactItem("1.5.5")),
     ],
     targets: [
         .target(

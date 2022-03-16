@@ -10,9 +10,6 @@ import SwiftUI
 import PixelKit
 import RenderKit
 import MultiViews
-#if canImport(UIKit)
-import UIKit
-#endif
 
 final class GeometryWriterViewModel<Content: View>: ObservableObject {
         
@@ -31,6 +28,7 @@ final class GeometryWriterViewModel<Content: View>: ObservableObject {
     private var leadingFraction: CGFloat?
     private var trailingFraction: CGFloat?
     private var bottomFraction: CGFloat?
+    
     @Published var fractionFrame: CGRect?
     
     var origin: CGPoint? {
@@ -74,7 +72,12 @@ final class GeometryWriterViewModel<Content: View>: ObservableObject {
         containerView.frame = CGRect(origin: .zero, size: maximumSize)
         containerView.addSubview(view)
         
+        #if os(macOS)
+        view.wantsLayer = true
+        view.layer!.backgroundColor = .clear
+        #else
         view.backgroundColor = .clear
+        #endif
         
         view.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
@@ -84,23 +87,13 @@ final class GeometryWriterViewModel<Content: View>: ObservableObject {
 
         viewPix.renderView = containerView
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) { [weak self] in
+        DispatchQueue.main.async { [weak self] in
             self?.viewPix.viewNeedsRender()
         }
         
         yReducePix.delegate = self
         xReducePix.delegate = self
     }
-    
-    func update(content: @escaping () -> Content) {
-        
-        hostingController.rootView = content()
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) { [weak self] in
-            self?.viewPix.viewNeedsRender()
-        }
-    }
-    
 }
 
 extension GeometryWriterViewModel: NODEDelegate {
