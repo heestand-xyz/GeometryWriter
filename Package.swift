@@ -13,8 +13,8 @@ let package = Package(
             targets: ["GeometryWriter"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/heestand-xyz/PixelKit", .exactItem("3.0.0")),
-        .package(url: "https://github.com/heestand-xyz/MultiViews", .exactItem("1.5.5")),
+        .package(url: "https://github.com/heestand-xyz/PixelKit", .exactItem("3.0.3")),
+        .package(url: "https://github.com/heestand-xyz/MultiViews", .exactItem("1.5.6")),
     ],
     targets: [
         .target(
