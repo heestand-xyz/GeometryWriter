@@ -38,3 +38,5 @@ struct ContentView: View {
 ```swift
 .package(url: "https://github.com/heestand-xyz/GeometryWriter", from: "1.0.0")
 ```
+
+Minimum requirement: iOS 14
