@@ -87,19 +87,28 @@ final class GeometryWriterViewModel<Content: View>: ObservableObject {
 
         viewPix.renderView = containerView
         
-        DispatchQueue.main.async { [weak self] in
-            self?.viewPix.viewNeedsRender()
-        }
-        
         yReducePix.delegate = self
         xReducePix.delegate = self
+        
+        forceRender()
+    }
+    
+    func forceRender() {
+        
+        DispatchQueue.main.async { [weak self] in
+            self?.render()
+        }
+    }
+    
+    func render() {
+        viewPix.viewNeedsRender()
     }
 }
 
 extension GeometryWriterViewModel: NODEDelegate {
     
     func nodeDidRender(_ node: NODE) {
-        
+          
         guard let pix = node as? PIX else { return }
         
         guard pix == xReducePix || pix == yReducePix else { return }
@@ -109,7 +118,7 @@ extension GeometryWriterViewModel: NODEDelegate {
         let values = pixels.raw.flatMap({ $0 }).map(\.color.alpha)
         
         if pix == xReducePix {
-            
+                        
             var leadingIndex: Int!
             for (index, value) in values.enumerated() {
                 if value > 0.01 {
@@ -128,8 +137,8 @@ extension GeometryWriterViewModel: NODEDelegate {
             
             guard leadingIndex != nil && trailingIndex != nil else { return }
             
-            leadingFraction = CGFloat(leadingIndex) / CGFloat(values.count - 1)
-            trailingFraction = CGFloat(trailingIndex) / CGFloat(values.count - 1)
+            leadingFraction = CGFloat(leadingIndex) / CGFloat(values.count)
+            trailingFraction = CGFloat(trailingIndex + 1) / CGFloat(values.count)
             
         } else if pix == yReducePix {
             
@@ -151,8 +160,8 @@ extension GeometryWriterViewModel: NODEDelegate {
             
             guard topIndex != nil && bottomIndex != nil else { return }
             
-            topFraction = CGFloat(topIndex) / CGFloat(values.count - 1)
-            bottomFraction = CGFloat(bottomIndex) / CGFloat(values.count - 1)
+            topFraction = CGFloat(topIndex) / CGFloat(values.count)
+            bottomFraction = CGFloat(bottomIndex + 1) / CGFloat(values.count)
         }
         
         calculateFractionFrame()
